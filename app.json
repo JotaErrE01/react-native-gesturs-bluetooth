@@ -16,32 +16,41 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "requiresFullScreen": true
+      "requiresFullScreen": true,
+      "bundleIdentifier": "com.anonymous.gestlurHandlerPractice"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT"
+      ],
+      "package": "com.anonymous.gestlurHandlerPractice"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       [
-        "expo-screen-orientation",
-        {
-          "initialOrientation": "DEFAULT"
-        }
-      ],
-      [
         "@config-plugins/react-native-ble-plx",
         {
           "isBackgroundEnabled": true,
-          "modes": ["peripheral", "central"],
+          "modes": [
+            "peripheral",
+            "central"
+          ],
           "bluetoothAlwaysPermission": "Permitir $(PRODUCT_NAME) conectarse a dispositivos Bluetooth"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3d48779d-ad44-4fb2-8ccd-b5b02db28bde"
+      }
+    }
   }
 }
