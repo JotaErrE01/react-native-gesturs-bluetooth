@@ -19,11 +19,55 @@ import {
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import * as PrintInvoice from './src/utils/print';
 
 const BleManagerModule = NativeModules.BleManager;
 const BleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
-const options: any = {
+interface IPrintLabelOptions {
+  width?: number;
+  height?: number;
+  gap?: number;
+  direction?: BluetoothTscPrinter.DIRECTION;
+  reference?: [number, number];
+  tear?: BluetoothTscPrinter.TEAR,
+  sound?: number,
+  text?: Array<{
+    text: string;
+    x: number;
+    y: number;
+    fonttype: BluetoothTscPrinter.FONTTYPE;
+    rotation: BluetoothTscPrinter.ROTATION;
+    xscal: BluetoothTscPrinter.FONTMUL;
+    yscal: BluetoothTscPrinter.FONTMUL;
+  }>;
+  qrcode?: Array<{
+    x: number;
+    y: number;
+    level: BluetoothTscPrinter.EEC;
+    width: number;
+    rotation: BluetoothTscPrinter.ROTATION;
+    code: string;
+  }>;
+  barcode?: Array<{
+    x: number;
+    y: number;
+    type: BluetoothTscPrinter.BARCODETYPE;
+    height: number;
+    readable: number;
+    rotation: BluetoothTscPrinter.ROTATION;
+    code: string;
+  }>;
+  image?: Array<{
+    x: number;
+    y: number;
+    mode: BluetoothTscPrinter.BITMAP_MODE,
+    width: number,
+    image: string;
+  }>;
+}
+
+const options: IPrintLabelOptions = {
   width: 40,
   height: 30,
   gap: 20,
@@ -36,42 +80,33 @@ const options: any = {
       text: 'I am a testing txt',
       x: 20,
       y: 0,
-      fonttype: BluetoothTscPrinter.FONTTYPE.SIMPLIFIED_CHINESE,
+      fonttype: BluetoothTscPrinter.FONTTYPE.FONT_1,
       rotation: BluetoothTscPrinter.ROTATION.ROTATION_0,
       xscal: BluetoothTscPrinter.FONTMUL.MUL_1,
       yscal: BluetoothTscPrinter.FONTMUL.MUL_1,
-    },
-    {
-      text: '你在说什么呢?',
-      x: 20,
-      y: 50,
-      fonttype: BluetoothTscPrinter.FONTTYPE.SIMPLIFIED_CHINESE,
-      rotation: BluetoothTscPrinter.ROTATION.ROTATION_0,
-      xscal: BluetoothTscPrinter.FONTMUL.MUL_1,
-      yscal: BluetoothTscPrinter.FONTMUL.MUL_1,
-    },
+    }
   ],
-  qrcode: [
-    {
-      x: 20,
-      y: 96,
-      level: BluetoothTscPrinter.EEC.LEVEL_L,
-      width: 3,
-      rotation: BluetoothTscPrinter.ROTATION.ROTATION_0,
-      code: 'show me the money',
-    },
-  ],
-  barcode: [
-    {
-      x: 120,
-      y: 96,
-      type: BluetoothTscPrinter.BARCODETYPE.CODE128,
-      height: 40,
-      readable: 1,
-      rotation: BluetoothTscPrinter.ROTATION.ROTATION_0,
-      code: '1234567890',
-    },
-  ],
+  // qrcode: [
+  //   {
+  //     x: 20,
+  //     y: 96,
+  //     level: BluetoothTscPrinter.EEC.LEVEL_L,
+  //     width: 3,
+  //     rotation: BluetoothTscPrinter.ROTATION.ROTATION_0,
+  //     code: 'show me the money',
+  //   },
+  // ],
+  // barcode: [
+  //   {
+  //     x: 120,
+  //     y: 96,
+  //     type: BluetoothTscPrinter.BARCODETYPE.CODE128,
+  //     height: 40,
+  //     readable: 1,
+  //     rotation: BluetoothTscPrinter.ROTATION.ROTATION_0,
+  //     code: '1234567890',
+  //   },
+  // ],
   // image: [
   //   {
   //     x: 160,
@@ -82,8 +117,6 @@ const options: any = {
   //   },
   // ],
 };
-
-const MAC = '04:7F:0E:4B:89:D0';
 
 export const FullApp = () => {
   const peripherals = new Map();
@@ -184,7 +217,7 @@ export const FullApp = () => {
       try {
         console.log('Connecting to ' + peripheral.name);
         console.log('ID: ' + peripheral.id);
-        
+
         await BluetoothManager.connect(peripheral.id);
 
         // await BleManager.connect(peripheral.id);
@@ -218,67 +251,6 @@ export const FullApp = () => {
         //   .catch(error => {
         //     console.log(error);
         //   });
-
-
-        // if (!peripheralData.characteristics) return;
-        // console.log('services', peripheralData.services);
-        // console.log('characteristics', peripheralData.characteristics);
-        // const writeCharacteristic = peripheralData.characteristics.find(
-        //   (characteristic: any) =>
-        //     characteristic.service === '49535343-fe7d-4ae5-8fa9-9fafd205e455' &&
-        //     characteristic.characteristic === '49535343-1e4d-4bd9-ba61-23c647249616',
-        // );
-        // console.log('writeCharacteristic', writeCharacteristic);
-
-        // if (writeCharacteristic) {
-        //   console.log('💩💩💩💩💩💩💩')
-        //   console.log('💩💩💩💩💩💩💩')
-        // const writeResponse = await BleManager.write(
-        //   peripheral.id,
-        //   writeCharacteristic.service,
-        //   writeCharacteristic.characteristic,
-        //   [0x1b, 0x40],
-        // );
-        // console.log('writeResponse', writeResponse);
-
-        // const readResponse = await BleManager.read(
-        //   peripheral.id,
-        //   writeCharacteristic.service,
-        //   writeCharacteristic.characteristic,
-        // );
-
-        // set pos print commands
-        // await BluetoothEscposPrinter.printerInit();
-        // BluetoothEscposPrinter.printColumn(columnWidths, columnAligns, columnTexts, options)
-        // await BluetoothEscposPrinter.setBlob(0);
-        // await BluetoothEscposPrinter.setBlob(1);
-
-        // print pos printer
-        // await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.CENTER);
-        // await BluetoothEscposPrinter.printText('Hello World', {
-        //   encoding: 'GBK',
-        //   codepage: 0,
-        //   widthtimes: 0,
-        //   heigthtimes: 0,
-        //   fonttype: 1,
-        // });
-        // BluetoothEscposPrinter.printText('你好，世界', {
-        //   encoding: 'GBK',
-        //   codepage: 0,
-        //   widthtimes: 0,
-        //   heigthtimes: 0,
-        //   fonttype: 1,
-        // });
-        // const config = {
-        //   width: 48,
-        //   codepage: 0,
-        //   font: 'B',
-        //   mode: 0
-        // };
-        // BluetoothEscposPrinter.printText('¡Hola, mundo!\n', {})
-        //   .then(() => console.log('Texto impreso'))
-        //   .catch((error) => console.error(error));
-        // }
       } catch (error) {
         console.error(error);
       }
@@ -537,20 +509,94 @@ export const FullApp = () => {
               // const manager = new BluetoothManager();
               // await manager.connect(direccionMAC);
               // Crea un objeto de comandos de impresión
-              const printData = `Bienvenido a nuestra tienda\nArtículo 1       10.00 €\nArtículo 2       20.00 €\nTotal        30.00 €\n-------------------------`;
+              // const printData = `\nBienvenido a nuestra tienda\nArtículo 1       10.00 €\nArtículo 2       20.00 €\nTotal        30.00 €\n-------------------------`;
+              // await BluetoothEscposPrinter.printText(printData, {});
+              // await BluetoothTscPrinter.printLabel(options);
+              // const printData = 'HOLA MUNDO, I áéíóú JavaScript';
+
+              // await BluetoothTscPrinter.printLabel(options);
+
+              // await BluetoothEscposPrinter.printerLineSpace(0);
+              
+              // await BluetoothEscposPrinter.printColumn(
+              //   [12, 12, 12], // column width
+              //   [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.CENTER, BluetoothEscposPrinter.ALIGN.RIGHT], // column align
+              //   ['', 'a', '$ 800.00'], // column text array
+              //   {}, // column options
+              // );
+
+              // await BluetoothEscposPrinter.printText('\n\r', {});
+
+              //? HEADER
+              // await PrintInvoice.printText(`\n\r\n\rPAPP-412318-9`, 'RIGHT', 1);
+
+              // await PrintInvoice.printText(`
+              //   Pedido enviado\n\r
+              //   Av. Juan Tanca Marengo
+              //   Dirección de entrega\n\r
+              //   30 Días
+              //   Condición de crédito aprobada\n\r
+              //   Orden de compra
+              //   Referencia\n\r
+              //   Indicaciones
+              //   Notas\n\r
+              // `, 'RIGHT');
+
+
+              // await PrintInvoice.printText(`\nTotal:    $ 800.00\n`, 'CENTER', 1);
+              // await PrintInvoice.printText('----------------------------------------------\n', 'CENTER');
+
+              const columnData = [
+                ['SubTotal', '$ 800.00'],
+                ['Total descuento bonificado', '$ 0.00'],
+                ['Total descuento', '$ 0.00'],
+                ['SubTotal sin IVA', '$ 800.00'],
+                ['IVA 12%', '$ 96.00']
+              ]
+              await PrintInvoice.printColumn(columnData);
+              await PrintInvoice.printText('----------------------------------------------\n', 'CENTER');
+
+              // await PrintIvoice(`\nSubTotal                      $ 800.00\nTotal descuento bonificado    $ 0.00\nTotal descuento               $ 0.00\nSubTotal sin IVA              $ 800.00\nIVA 12%                       $ 96.00\n--------------------------------------------\n
+              // `, 'CENTER');
+              // await PrintIvoice(`\nSubTotal                      $ 800.00\nTotal descuento bonificado    $ 0.00\nTotal descuento               $ 0.00\nSubTotal sin IVA              $ 800.00\nIVA 12%                       $ 96.00\n--------------------------------------------\n
+              // `, 'CENTER');
+              // await PrintIvoice(`SubTotal`, 'LEFT');
+              // await PrintIvoice(`$ 800.00`, 'RIGHT');
+
+
+
+              // await PrintIvoice(`$ 800.00
+              // `, 'RIGHT', 2);
+
+              // await BluetoothEscposPrinter.printText(`
+              // Pedido enviado`, {
+              //   encoding: 'GBK',
+              //   codepage: 0,
+              // });
+
+
+              // await BluetoothEscposPrinter.printText(`
+              //   Av. Juan Tanca Marengo
+              //   Dirección de entrega
+              // `, {
+              //   encoding: 'Cp1254',
+              //   codepage: 32,
+              // });
+
+              console.log('printData', '💩💩💩💩💩💩💩');
+              // await BluetoothEscposPrinter.setBlob(0);
+
+              // BluetoothEscposPrinter.printPic('conauto')
+
+              // BluetoothEscposPrinter.printAndFeed
 
               // Envía los comandos de impresión a la impresora POS
-              BluetoothEscposPrinter.printText(printData, {
-                encoding: 'GBK',
-                codepage: 0,
-                widthtimes: 0,
-              })
-                .then(() => {
-                  console.log('Ticket impreso correctamente');
-                })
-                .catch((error) => {
-                  console.log('Error al imprimir ticket:', error);
-                });
+              // await BluetoothEscposPrinter.printText(printData, {
+              //   encoding: 'Cp1254',
+              //   // encoding: 'GBK',
+              //   codepage: 32,
+              //   widthtimes: 2,
+              // });
             } catch (error) {
               console.log({ error })
             }
